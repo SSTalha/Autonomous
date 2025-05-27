@@ -1,0 +1,56 @@
+[
+    {
+        "message_id": "fb_task_001",
+        "timestamp": "2024-06-15T10:30:00Z",
+        "priority": "high",
+        "platform": "facebook",
+        "action_type": "comment",
+        "target": {
+            "post_id": "post_123456789",
+            "page_url": "https://www.facebook.com/story.php?story_fbid=1794019381161613&id=100016607043959",
+            "parent_comment_id": null
+        },
+        "content": {
+            "text": "Exciting news! We're celebrating our latest achievement!",
+            "media": [
+                {
+                    "type": "image",
+                    "url": "https://example.com/celebration_image.jpg",
+                    "alt_text": "Team celebration photo"
+                }
+            ]
+        },
+        "scheduling": {
+            "execute_at": "2024-06-15T10:30:00Z",
+            "timezone": "UTC"
+        },
+        "metadata": {
+            "source": "marketing_team",
+            "correlation_id": "campaign_summer_2024"
+        }
+    },
+    {
+        "message_id": "fb_task_002",
+        "timestamp": "2024-06-15T11:00:00Z",
+        "priority": "medium",
+        "platform": "facebook",
+        "action_type": "reply",
+        "target": {
+            "post_id": "post_987654321",
+            "page_url": "https://www.facebook.com/story.php?story_fbid=1794019381161613&id=100016607043959",
+            "parent_comment_id": "comment_5678"
+        },
+        "content": {
+            "text": "Thank you for your great comment! We appreciate your support.",
+            "media": []
+        },
+        "scheduling": {
+            "execute_at": "2024-06-15T11:00:00Z",
+            "timezone": "UTC"
+        },
+        "metadata": {
+            "source": "customer_support",
+            "correlation_id": "support_interaction_001"
+        }
+    }
+] 
