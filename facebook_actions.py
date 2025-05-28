@@ -122,6 +122,7 @@ class FacebookBot:
             self.logger.error(f"Commenting failed: {e}")
             raise
 
+
     def reply_to_comment(self, comment_text: str, parent_comment_id: str):
         """Reply to a specific comment using advanced ActionChains"""
         try:
@@ -134,15 +135,18 @@ class FacebookBot:
             self.driver.execute_script("arguments[0].scrollIntoView(true);", parent_comment)
             time.sleep(1)  # Small delay to ensure scrolling completes
 
-            # Find and click reply button
-            reply_button = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, ".//div[contains(text(), 'Reply')]"))
-            )
+            # Find the parent comment container
+            # First, navigate up to find the comment container that contains both the comment and its reply button
+            comment_container = parent_comment.find_element(By.XPATH, "./ancestor::div[contains(@class, 'comment') or @role='article'][1]")
+            
+            # Now find the reply button within this container
+            reply_button = comment_container.find_element(By.XPATH, ".//div[contains(text(), 'Reply')]")
+            
             self.actions.move_to_element(reply_button) \
                 .pause(0.5) \
                 .click() \
                 .perform()
-
+            
             # Wait for reply box to appear
             reply_box = self.wait.until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, "div[role='textbox'][aria-label^='Reply to']"))

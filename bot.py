@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from facebook_actions import FacebookBot
 import config
 import os
+import time
 
 def process_tasks(tasks_file: str = 'tasks.json'):
     """Process tasks from JSON file"""
@@ -13,6 +14,7 @@ def process_tasks(tasks_file: str = 'tasks.json'):
     try:
         # Login to Facebook
         bot.login(config.FB_USERNAME, config.FB_PASSWORD)
+        time.sleep(5)
 
         # Check if the file exists
         if not os.path.exists(tasks_file):
@@ -38,6 +40,7 @@ def process_tasks(tasks_file: str = 'tasks.json'):
                 # Perform action based on type
                 if task['action_type'] == 'comment':
                     bot.comment_on_post(task['content']['text'])
+                    time.sleep(2)
                 
                 elif task['action_type'] == 'reply':
                     # Perform reply
@@ -46,9 +49,11 @@ def process_tasks(tasks_file: str = 'tasks.json'):
                         task['content']['text'], 
                         task['target']['parent_comment_id']
                     )
+                    time.sleep(2)
 
                 # Log successful task completion
                 bot.logger.info(f"Successfully processed task: {task['message_id']}")
+                time.sleep(5)
 
             except Exception as task_error:
                 bot.logger.error(f"Error processing task {task['message_id']}: {task_error}")
