@@ -1,12 +1,11 @@
 import os
 from dotenv import load_dotenv
-
 # Load environment variables
 load_dotenv()
 
 # Facebook Credentials
-FB_USERNAME = os.getenv('FB_USERNAME')
-FB_PASSWORD = os.getenv('FB_PASSWORD')
+FB_USERNAME = 'alicheema.omni@gmail.com'
+FB_PASSWORD = 'ali.omni@cheema'
 
 # Selenium WebDriver Configuration
 CHROME_DRIVER_PATH = None  # Will use WebDriver Manager to handle this
@@ -18,3 +17,4 @@ EXPLICIT_WAIT_TIME = 15
 # Logging Configuration
 LOG_FILE = 'facebook_bot.log'
 LOG_LEVEL = 'INFO'
+USER_DATA_DIR = 'C:/Users/Talha/AppData/Local/Google/Chrome/User Data/Profile 17'

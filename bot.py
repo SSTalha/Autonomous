@@ -3,8 +3,9 @@ import logging
 from datetime import datetime, timezone
 from facebook_actions import FacebookBot
 import config
+import os
 
-def process_tasks(tasks_file: str):
+def process_tasks(tasks_file: str = 'tasks.json'):
     """Process tasks from JSON file"""
     # Initialize Facebook Bot
     bot = FacebookBot()
@@ -12,6 +13,11 @@ def process_tasks(tasks_file: str):
     try:
         # Login to Facebook
         bot.login(config.FB_USERNAME, config.FB_PASSWORD)
+
+        # Check if the file exists
+        if not os.path.exists(tasks_file):
+            bot.logger.error(f"File not found: {tasks_file}")
+            return
 
         # Read tasks from JSON file
         with open(tasks_file, 'r') as f:
@@ -27,7 +33,7 @@ def process_tasks(tasks_file: str):
 
                 # Navigate to the post
                 #Construct post url here using post_id
-                bot.navigate_to_post(task['target']['page_url'])
+                bot.navigate_to_post(task['target']['post_id'])
 
                 # Perform action based on type
                 if task['action_type'] == 'comment':
@@ -36,10 +42,9 @@ def process_tasks(tasks_file: str):
                 elif task['action_type'] == 'reply':
                     # Perform reply
                     # Construct XPath based on parent_comment_id
-                    parent_comment_xpath = f"//div[@data-commentid='{task['target']['parent_comment_id']}']"
                     bot.reply_to_comment(
                         task['content']['text'], 
-                        parent_comment_xpath
+                        task['target']['parent_comment_id']
                     )
 
                 # Log successful task completion
@@ -63,7 +68,7 @@ def main():
     )
 
     # Process tasks from JSON file
-    process_tasks('tasks.json')
+    process_tasks()
 
 if __name__ == "__main__":
     main()

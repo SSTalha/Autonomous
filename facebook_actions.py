@@ -28,6 +28,7 @@ class FacebookBot:
         # Setup Chrome options
         chrome_options = Options()
         chrome_options.add_argument("--start-maximized")
+        chrome_options.add_argument(f"user_data_dir={config.USER_DATA_DIR}")
         # Uncomment the line below for headless mode if needed
         # chrome_options.add_argument("--headless")
 
@@ -43,47 +44,53 @@ class FacebookBot:
         try:
             self.driver.get("https://www.facebook.com/login")
             
-            # Find username and password fields
-            username_field = self.wait.until(
-                EC.presence_of_element_located((By.ID, "email"))
-            )
-            password_field = self.wait.until(
-                EC.presence_of_element_located((By.ID, "pass"))
-            )
+            # Check if the email field is present
+            try:
+                username_field = self.wait.until(
+                    EC.presence_of_element_located((By.ID, "email"))
+                )
+                password_field = self.wait.until(
+                    EC.presence_of_element_located((By.ID, "pass"))
+                )
 
-            # Use ActionChains for more robust input
-            self.actions.move_to_element(username_field) \
-                .click() \
-                .send_keys(username) \
-                .move_to_element(password_field) \
-                .click() \
-                .send_keys(password) \
-                .send_keys(Keys.RETURN) \
-                .perform()
+                # Use ActionChains for more robust input
+                self.actions.move_to_element(username_field) \
+                    .click() \
+                    .pause(1) \
+                    .send_keys(username) \
+                    .pause(1) \
+                    .move_to_element(password_field) \
+                    .click() \
+                    .pause(1) \
+                    .send_keys(password) \
+                    .pause(1) \
+                    .send_keys(Keys.RETURN) \
+                    .perform()
 
-            # Wait for login to complete
-            self.wait.until(
-                EC.presence_of_element_located((By.XPATH, "//div[@role='main']"))
-            )
-            self.logger.info("Successfully logged in")
+                # Wait for login to complete
+                self.wait.until(
+                    EC.presence_of_element_located((By.XPATH, "//div[@role='main']"))
+                )
+                self.logger.info("Successfully logged in")
+            except:
+                # If email field is not found, assume user is already logged in
+                self.logger.info("User is already logged in")
+                return
+
         except Exception as e:
             self.logger.error(f"Login failed: {e}")
             raise
 
-    def navigate_to_post(self, post_url: str):
+    def navigate_to_post(self, post_id: str):
         """Navigate to a specific Facebook post using ActionChains"""
         try:
-            # Use JavaScript to navigate (more reliable for some URLs)
+            # Construct the post URL from post_id (format: pageID_postID)
+            page_id, post_id_part = post_id.split('_')
+            post_url = f"https://www.facebook.com/{page_id}/posts/{post_id_part}"
             self.driver.execute_script(f"window.location.href = '{post_url}'")
             
-            # Wait for page to load
-            self.wait.until(
-                EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'post')]"))
-            )
-            
-            # Scroll to the post using ActionChains
-            post_element = self.driver.find_element(By.XPATH, "//div[contains(@class, 'post')]")
-            self.actions.move_to_element(post_element).perform()
+            # Wait for 4 seconds instead of explicit wait
+            time.sleep(4)
             
             self.logger.info(f"Navigated to post: {post_url}")
         except Exception as e:
@@ -95,43 +102,42 @@ class FacebookBot:
         try:
             # Find comment textarea
             comment_box = self.wait.until(
-                EC.presence_of_element_located((By.XPATH, "//div[@role='textbox']"))
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div[role='textbox'][aria-label='Write a comment…']"))
             )
 
             # Use ActionChains for commenting
             self.actions.move_to_element(comment_box) \
                 .click() \
+                .pause(1) \
                 .send_keys(comment_text) \
+                .pause(1) \
                 .send_keys(Keys.RETURN) \
                 .perform()
             
             # Wait for comment to be posted
-            self.wait.until(
-                EC.presence_of_element_located((By.XPATH, f"//div[contains(text(), '{comment_text}')]"))
-            )
+            time.sleep(2)
             
             self.logger.info("Comment posted successfully")
         except Exception as e:
             self.logger.error(f"Commenting failed: {e}")
             raise
 
-    def reply_to_comment(self, comment_text: str, parent_comment_xpath: str):
+    def reply_to_comment(self, comment_text: str, parent_comment_id: str):
         """Reply to a specific comment using advanced ActionChains"""
         try:
-            # Find parent comment
+            # Find parent comment by comment_id in href
             parent_comment = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, parent_comment_xpath))
+                EC.element_to_be_clickable((By.XPATH, f"//a[contains(@href, 'comment_id={parent_comment_id}')]"))
             )
 
             # Scroll to parent comment
-            self.actions.move_to_element(parent_comment).perform()
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", parent_comment)
+            time.sleep(1)  # Small delay to ensure scrolling completes
 
-            # Find and click reply button using complex ActionChains
-            reply_button = parent_comment.find_element(
-                By.XPATH, ".//div[contains(@aria-label, 'Reply') or contains(@data-testid, 'comment-reply')]"
+            # Find and click reply button
+            reply_button = self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, ".//div[contains(text(), 'Reply')]"))
             )
-            
-            # Perform click with ActionChains
             self.actions.move_to_element(reply_button) \
                 .pause(0.5) \
                 .click() \
@@ -139,7 +145,7 @@ class FacebookBot:
 
             # Wait for reply box to appear
             reply_box = self.wait.until(
-                EC.presence_of_element_located((By.XPATH, "//div[@role='textbox']"))
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div[role='textbox'][aria-label^='Reply to']"))
             )
 
             # Use ActionChains to type and submit reply
@@ -148,31 +154,18 @@ class FacebookBot:
                 .send_keys(comment_text) \
                 .send_keys(Keys.RETURN) \
                 .perform()
-            
+
+            # Wait for reply to be posted
+            time.sleep(2)
+            self.wait.until(
+                EC.presence_of_element_located((By.XPATH, f"//span[contains(text(), '{comment_text}')]"))
+            )
+
             self.logger.info("Reply posted successfully")
         except Exception as e:
             self.logger.error(f"Replying failed: {e}")
             raise
 
-
-    def scroll_and_find_element(self, locator: Tuple[By, str], max_scroll: int = 3) -> WebElement:
-        """
-        Scroll and find an element using ActionChains
-        
-        :param locator: Tuple of (By, locator_string)
-        :param max_scroll: Maximum number of scroll attempts
-        :return: Found WebElement
-        """
-        for _ in range(max_scroll):
-            try:
-                element = self.driver.find_element(*locator)
-                self.actions.move_to_element(element).perform()
-                return element
-            except:
-                # Scroll down
-                self.actions.send_keys(Keys.PAGE_DOWN).perform()
-        
-        raise Exception(f"Element not found after {max_scroll} scroll attempts")
 
     def close(self):
         """Close the browser"""
