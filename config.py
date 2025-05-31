@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Facebook Credentials
-FB_USERNAME = 'alicheema.omni@gmail.com'
-FB_PASSWORD = 'ali.omni@cheema'
+FB_USERNAME = os.getenv('FB_USERNAME')
+FB_PASSWORD = os.getenv('FB_PASSWORD')
 
 # Selenium WebDriver Configuration
 CHROME_DRIVER_PATH = None  # Will use WebDriver Manager to handle this
