@@ -42,51 +42,55 @@ class FacebookBot:
     def login(self, username: str, password: str):
         """Login to Facebook using ActionChains"""
         try:
-            self.driver.get("https://www.facebook.com/login")
-            
-            # Check if the email field is present
-            try:
-                username_field = self.wait.until(
-                    EC.presence_of_element_located((By.ID, "email"))
-                )
-                password_field = self.wait.until(
-                    EC.presence_of_element_located((By.ID, "pass"))
-                )
-
-                # Use ActionChains for more robust input
-                self.actions.move_to_element(username_field) \
-                    .click() \
-                    .pause(1) \
-                    .send_keys(username) \
-                    .pause(1) \
-                    .move_to_element(password_field) \
-                    .click() \
-                    .pause(1) \
-                    .send_keys(password) \
-                    .pause(1) \
-                    .send_keys(Keys.RETURN) \
-                    .perform()
-
-                # Wait for login to complete
-                self.wait.until(
-                    EC.presence_of_element_located((By.XPATH, "//div[@role='main']"))
-                )
-                self.logger.info("Successfully logged in")
-            except:
-                # If email field is not found, assume user is already logged in
-                self.logger.info("User is already logged in")
+            # Navigate to Facebook homepage to utilize persistent session
+            self.driver.get("https://www.facebook.com")
+            time.sleep(3)
+            cookies = self.driver.get_cookies()
+            if any(cookie.get("name") == "c_user" for cookie in cookies):
+                self.logger.info("User is already logged in with persistent session.")
                 return
+
+            # Not logged in, proceed to login page
+            self.driver.get("https://www.facebook.com/login")
+
+            # Check if the email field is present and perform login if needed
+            username_field = self.wait.until(
+                EC.presence_of_element_located((By.ID, "email"))
+            )
+            password_field = self.wait.until(
+                EC.presence_of_element_located((By.ID, "pass"))
+            )
+
+            # Use ActionChains for more robust input
+            self.actions.move_to_element(username_field) \
+                .click() \
+                .pause(1) \
+                .send_keys(username) \
+                .pause(1) \
+                .move_to_element(password_field) \
+                .click() \
+                .pause(1) \
+                .send_keys(password) \
+                .pause(1) \
+                .send_keys(Keys.RETURN) \
+                .perform()
+
+            # Wait for login to complete
+            self.wait.until(
+                EC.presence_of_element_located((By.XPATH, "//div[@role='main']"))
+            )
+            self.logger.info("Successfully logged in")
 
         except Exception as e:
             self.logger.error(f"Login failed: {e}")
             raise
 
-    def navigate_to_post(self, post_id: str):
+    def navigate_to_post(self, post_url: str):
         """Navigate to a specific Facebook post using ActionChains"""
         try:
             # Construct the post URL from post_id (format: pageID_postID)
-            page_id, post_id_part = post_id.split('_')
-            post_url = f"https://www.facebook.com/{page_id}/posts/{post_id_part}"
+            # page_id, post_id_part = post_id.split('_')
+            # post_url = f"https://www.facebook.com/{page_id}/posts/{post_id_part}"
             self.driver.execute_script(f"window.location.href = '{post_url}'")
             
             # Wait for 4 seconds instead of explicit wait

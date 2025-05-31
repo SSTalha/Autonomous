@@ -35,7 +35,7 @@ def process_tasks(tasks_file: str = 'tasks.json'):
 
                 # Navigate to the post
                 #Construct post url here using post_id
-                bot.navigate_to_post(task['target']['post_id'])
+                bot.navigate_to_post(task['target']['page_url'])
 
                 # Perform action based on type
                 if task['action_type'] == 'comment':
