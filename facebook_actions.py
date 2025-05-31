@@ -39,21 +39,33 @@ class FacebookBot:
         self.wait = WebDriverWait(self.driver, config.EXPLICIT_WAIT_TIME)
         self.actions = ActionChains(self.driver)
 
+
+
     def login(self, username: str, password: str):
-        """Login to Facebook using ActionChains"""
+        """Login to Facebook using ActionChains, leveraging persistent session if available."""
         try:
-            # Navigate to Facebook homepage to utilize persistent session
+            # Navigate to Facebook homepage to check for persistent session
             self.driver.get("https://www.facebook.com")
-            time.sleep(3)
+            time.sleep(3)  # Allow page to load
+
+            # Check for c_user cookie to detect existing session
             cookies = self.driver.get_cookies()
             if any(cookie.get("name") == "c_user" for cookie in cookies):
-                self.logger.info("User is already logged in with persistent session.")
-                return
-
-            # Not logged in, proceed to login page
+                # Verify logged-in state by checking for a main feed or profile element
+                try:
+                    self.wait.until(
+                        EC.presence_of_element_located((By.XPATH, "//div[@role='main']"))
+                    )
+                    self.logger.info("User is already logged in with persistent session.")
+                    return
+                except:
+                    self.logger.info("Session cookie found but not logged in, proceeding to login.")
+            
+            # No valid session, navigate to login page
+            self.logger.info("No valid session found, attempting to log in.")
             self.driver.get("https://www.facebook.com/login")
-
-            # Check if the email field is present and perform login if needed
+            
+            # Wait for and fill the login form
             username_field = self.wait.until(
                 EC.presence_of_element_located((By.ID, "email"))
             )
@@ -61,7 +73,7 @@ class FacebookBot:
                 EC.presence_of_element_located((By.ID, "pass"))
             )
 
-            # Use ActionChains for more robust input
+            # Use ActionChains for robust input
             self.actions.move_to_element(username_field) \
                 .click() \
                 .pause(1) \
