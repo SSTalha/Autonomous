@@ -66,7 +66,8 @@ facebook-bot/
   (Add your details in config.py file for now)
 
 4. **Update the config.py file**:
-   Update the `USER_DATA_DIR` and add the path to your chrome website
+
+   Update the `USER_DATA_DIR` in config.py file by adding the path to your chrome profile
 
 5. **🧪 Running the Bot**
 
