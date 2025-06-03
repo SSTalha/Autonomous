@@ -17,4 +17,5 @@ EXPLICIT_WAIT_TIME = 15
 # Logging Configuration
 LOG_FILE = 'facebook_bot.log'
 LOG_LEVEL = 'INFO'
-USER_DATA_DIR = 'C:/Users/Talha/AppData/Local/Google/Chrome/User Data/Profile 17'
+USER_DATA_DIR = 'your_chrome_path'
+#Enter your chrome profile path above. You can find it by opening chrome and typing chrome://version in the URL bar and copying the full path of 'Profile Path'.
